@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.template import Template, Context, loader
 
-from .models import Wpis
+from .models import Wpis, Tag
 
 
 # Create your views here.
@@ -29,11 +29,21 @@ def index(request):
 
 def details(request, id_wpisu):
     wpis = Wpis.objects.get(pk=id_wpisu)
+    tagi = wpis.tagi.all()
+    wpisy = Wpis.objects.all()
 
+    paginator = Paginator(wpisy, 20)  # pokaż 1 wpisie na stronie
+    page = request.GET.get('page')
+    wpisy = paginator.get_page(page)
     return render(
         request=request,
         template_name='blog/index.html',
-        context={'wybrany_wpis': wpis}
+        context={
+            'wybrany_wpis': wpis,
+            'wpisy': wpisy,
+            'page': page,
+            'tagi': tagi
+        }
     )
 
 
@@ -68,5 +78,22 @@ def index_temp(request):
     return render(
         request=request,
         template_name='blog/index.html',
+        context=context
+    )
+
+
+def wpisy_taga(request, nazwa_taga):
+    tag = Tag.objects.get(nazwa=nazwa_taga)
+    wpisy = tag.wpis_set.all()
+
+    context = {
+
+        'wpisy': wpisy,
+        'tag': tag
+    }
+
+    return render(
+        request=request,
+        template_name='blog/wpisy_po_tagu.html',
         context=context
     )
